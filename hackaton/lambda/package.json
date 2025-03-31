@@ -1,0 +1,13 @@
+{
+  "name": "streamflix-api",
+  "version": "1.0.0",
+  "description": "StreamFlix API Lambda function",
+  "main": "index.js",
+  "dependencies": {
+    "node-fetch": "^2.7.0",
+    "pg": "^8.11.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
