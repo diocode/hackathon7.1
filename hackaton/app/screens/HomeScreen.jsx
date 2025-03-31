@@ -10,7 +10,6 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
-import { useAuth } from '../context/AuthContext';
 import SwipeRecommendations from './SwipeRecommendations';
 
 const { width } = Dimensions.get('window');
@@ -20,7 +19,6 @@ const THUMBNAIL_HEIGHT = THUMBNAIL_WIDTH * 0.56; // 16:9 aspect ratio for thumbn
 export default function HomeScreen() {
   const [movies, setMovies] = useState([]);
   const [showRecommendations, setShowRecommendations] = useState(false);
-  const { updateUserPreferences, updateWatchlist } = useAuth();
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -87,7 +85,7 @@ export default function HomeScreen() {
           <Text style={styles.sectionTitle}>Popular Movies</Text>
           <View style={styles.thumbnailGrid}>
             {movies.map((movie) => (
-              <TouchableOpacity
+              <TouchableOpacity 
                 key={movie.id}
                 style={styles.thumbnailContainer}
                 onPress={() => {
@@ -116,7 +114,7 @@ export default function HomeScreen() {
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <TouchableOpacity
+            <TouchableOpacity 
               style={styles.closeButton}
               onPress={() => setShowRecommendations(false)}
             >
