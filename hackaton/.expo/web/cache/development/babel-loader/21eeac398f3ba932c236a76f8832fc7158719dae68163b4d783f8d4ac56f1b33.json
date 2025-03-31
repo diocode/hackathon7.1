@@ -1,0 +1,1 @@
+{"ast":null,"code":"import App from './app/app';\nexport default App;","map":{"version":3,"names":["App"],"sources":["/home/patz/hackathon7.1/hackaton/App.js"],"sourcesContent":["import App from './app/app';\n\nexport default App; "],"mappings":"AAAA,OAAOA,GAAG,MAAM,WAAW;AAE3B,eAAeA,GAAG","ignoreList":[]},"metadata":{},"sourceType":"module","externalDependencies":[]}

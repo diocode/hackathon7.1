@@ -5,74 +5,100 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  ImageBackground,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 
-export default function LoginScreen({ navigation }) {
+const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { login, loading } = useAuth();
+  const [isRegistering, setIsRegistering] = useState(false);
+  const { login, register, loading } = useAuth();
 
-  const handleLogin = async () => {
-    const success = await login(email, password);
-    if (success) {
-      navigation.replace('MainApp');
+  const handleSubmit = async () => {
+    if (!email || !password) {
+      Alert.alert('Error', 'Please fill in all fields');
+      return;
+    }
+
+    try {
+      const success = isRegistering
+        ? await register(email, password)
+        : await login(email, password);
+
+      if (success) {
+        // Navigation will be handled by the navigation container
+        // based on the auth state change
+      } else {
+        Alert.alert(
+          'Error',
+          isRegistering
+            ? 'Registration failed. Please try again.'
+            : 'Invalid credentials. Please try again.'
+        );
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     }
   };
 
   return (
-    <ImageBackground
-      source={require('../assets/background.jpg')}
-      style={styles.background}
-    >
-      <View style={styles.container}>
-        <Text style={styles.title}>StreamFlix</Text>
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-          />
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleLogin}
-            disabled={loading}
-          >
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Login</Text>
-            )}
-          </TouchableOpacity>
-        </View>
+    <View style={styles.container}>
+      <Text style={styles.title}>StreamFlix</Text>
+      <View style={styles.form}>
+        <TextInput
+          style={styles.input}
+          placeholder="Email"
+          placeholderTextColor="#666"
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          keyboardType="email-address"
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor="#666"
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>
+              {isRegistering ? 'Register' : 'Login'}
+            </Text>
+          )}
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.switchButton}
+          onPress={() => setIsRegistering(!isRegistering)}
+        >
+          <Text style={styles.switchButtonText}>
+            {isRegistering
+              ? 'Already have an account? Login'
+              : "Don't have an account? Register"}
+          </Text>
+        </TouchableOpacity>
       </View>
-    </ImageBackground>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
   container: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#141414',
     padding: 20,
   },
   title: {
@@ -86,8 +112,8 @@ const styles = StyleSheet.create({
     maxWidth: 400,
   },
   input: {
-    backgroundColor: 'rgba(255,255,255,0.1)',
-    borderRadius: 8,
+    backgroundColor: '#333',
+    borderRadius: 5,
     padding: 15,
     marginBottom: 15,
     color: '#fff',
@@ -96,7 +122,7 @@ const styles = StyleSheet.create({
   button: {
     backgroundColor: '#E50914',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 5,
     alignItems: 'center',
     marginTop: 10,
   },
@@ -105,4 +131,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-}); 
+  switchButton: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  switchButtonText: {
+    color: '#fff',
+    fontSize: 14,
+  },
+});
+
+export default LoginScreen; 
