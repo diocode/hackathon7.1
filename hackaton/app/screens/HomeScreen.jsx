@@ -97,9 +97,12 @@ export default function HomeScreen() {
                   style={styles.thumbnail}
                   resizeMode="cover"
                 />
-                <Text style={styles.thumbnailTitle} numberOfLines={2}>
-                  {movie.title}
-                </Text>
+                <View style={styles.thumbnailInfo}>
+                  <Text style={styles.thumbnailTitle} numberOfLines={2}>
+                    {movie.title}
+                  </Text>
+                  <Text style={styles.thumbnailRating}>★ {movie.rating}</Text>
+                </View>
               </TouchableOpacity>
             ))}
           </View>
@@ -177,17 +180,28 @@ const styles = StyleSheet.create({
     width: THUMBNAIL_WIDTH,
     marginBottom: 10,
     marginHorizontal: 5,
+    backgroundColor: '#1a1a1a',
+    borderRadius: 8,
+    overflow: 'hidden',
   },
   thumbnail: {
     width: THUMBNAIL_WIDTH,
     height: THUMBNAIL_HEIGHT,
-    borderRadius: 4,
+    borderRadius: 8,
+  },
+  thumbnailInfo: {
+    padding: 10,
+    backgroundColor: '#1a1a1a',
   },
   thumbnailTitle: {
     color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  thumbnailRating: {
+    color: '#E50914',
     fontSize: 12,
-    marginTop: 4,
-    textAlign: 'center',
   },
   modalContainer: {
     flex: 1,
