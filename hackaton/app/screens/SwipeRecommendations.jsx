@@ -14,8 +14,9 @@ import { useAuth } from '../context/AuthContext';
 import { getMovies } from '../services/api';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-const CARD_WIDTH = SCREEN_WIDTH * 0.8;
-const CARD_HEIGHT = CARD_WIDTH * 1.5;
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+const CARD_WIDTH = Math.min(SCREEN_WIDTH * 0.9, 400);
+const CARD_HEIGHT = Math.min(SCREEN_HEIGHT * 0.6, CARD_WIDTH * 1.5);
 const SWIPE_THRESHOLD = 0.25 * SCREEN_WIDTH;
 
 const SwipeRecommendations = ({ onClose }) => {
@@ -54,6 +55,7 @@ const SwipeRecommendations = ({ onClose }) => {
 
   const panResponder = PanResponder.create({
     onStartShouldSetPanResponder: () => true,
+    onMoveShouldSetPanResponder: () => true,
     onPanResponderMove: (_, gesture) => {
       position.setValue({ x: gesture.dx, y: gesture.dy });
     },
@@ -73,7 +75,7 @@ const SwipeRecommendations = ({ onClose }) => {
     Animated.timing(position, {
       toValue: { x, y: 0 },
       duration: 250,
-      useNativeDriver: false,
+      useNativeDriver: true,
     }).start(() => onSwipeComplete(direction));
   };
 
@@ -96,7 +98,7 @@ const SwipeRecommendations = ({ onClose }) => {
   const resetPosition = () => {
     Animated.spring(position, {
       toValue: { x: 0, y: 0 },
-      useNativeDriver: false,
+      useNativeDriver: true,
     }).start();
   };
 
@@ -107,48 +109,63 @@ const SwipeRecommendations = ({ onClose }) => {
     });
 
     return {
-      ...position.getLayout(),
-      transform: [{ rotate }],
+      transform: [
+        { translateX: position.x },
+        { translateY: position.y },
+        { rotate }
+      ],
     };
   };
 
   if (currentIndex >= movies.length) {
     return (
       <View style={styles.container}>
-        <Text style={styles.noMoreText}>No more recommendations!</Text>
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Text style={styles.closeButtonText}>Close</Text>
-        </TouchableOpacity>
+        <View style={styles.noMoreContainer}>
+          <Text style={styles.noMoreText}>No more recommendations!</Text>
+        </View>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      {movies.map((movie, index) => {
-        if (index < currentIndex) return null;
+      <View style={styles.cardContainer}>
+        {movies.map((movie, index) => {
+          if (index < currentIndex) return null;
 
-        const isFirst = index === currentIndex;
-        const dragHandlers = isFirst ? panResponder.panHandlers : {};
-        const cardStyle = isFirst ? getCardStyle() : {};
+          const isFirst = index === currentIndex;
+          const dragHandlers = isFirst ? panResponder.panHandlers : {};
+          const cardStyle = isFirst ? getCardStyle() : {};
 
-        return (
-          <Animated.View
-            key={movie.id}
-            style={[styles.card, cardStyle]}
-            {...dragHandlers}
-          >
-            <View style={styles.cardContent}>
-              <Text style={styles.title}>{movie.title}</Text>
-              <Text style={styles.description}>{movie.description}</Text>
-              <Text style={styles.rating}>Rating: {movie.rating}/10</Text>
-            </View>
-          </Animated.View>
-        );
-      }).reverse()}
-      <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-        <Text style={styles.closeButtonText}>Close</Text>
-      </TouchableOpacity>
+          return (
+            <Animated.View
+              key={movie.id}
+              style={[styles.card, cardStyle]}
+              {...dragHandlers}
+            >
+              <View style={styles.cardContent}>
+                <Text style={styles.title}>{movie.title}</Text>
+                <Text style={styles.description}>{movie.description}</Text>
+                <Text style={styles.rating}>Rating: {movie.rating}/10</Text>
+              </View>
+            </Animated.View>
+          );
+        }).reverse()}
+      </View>
+      <View style={styles.actionButtons}>
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.rejectButton]} 
+          onPress={() => forceSwipe('left')}
+        >
+          <Text style={styles.actionButtonText}>Reject</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[styles.actionButton, styles.addButton]} 
+          onPress={() => forceSwipe('right')}
+        >
+          <Text style={styles.actionButtonText}>Add to List</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -156,10 +173,15 @@ const SwipeRecommendations = ({ onClose }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#1a1a1a',
+    width: '100%',
+    height: '100%',
+  },
+  cardContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#1a1a1a',
-    padding: 20,
+    paddingTop: 20,
   },
   card: {
     position: 'absolute',
@@ -172,49 +194,90 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
     elevation: 5,
+    overflow: 'hidden',
   },
   cardContent: {
     flex: 1,
-    padding: 20,
+    padding: 15,
     justifyContent: 'center',
     alignItems: 'center',
+    width: '100%',
   },
   title: {
-    fontSize: 24,
+    fontSize: Math.min(SCREEN_WIDTH * 0.06, 24),
     fontWeight: 'bold',
     color: '#fff',
     textAlign: 'center',
     marginBottom: 10,
   },
   description: {
-    fontSize: 16,
+    fontSize: Math.min(SCREEN_WIDTH * 0.04, 16),
     color: '#ccc',
     textAlign: 'center',
     marginBottom: 10,
+    paddingHorizontal: 10,
   },
   rating: {
-    fontSize: 18,
+    fontSize: Math.min(SCREEN_WIDTH * 0.045, 18),
     color: '#ffd700',
     fontWeight: 'bold',
   },
   closeButton: {
     position: 'absolute',
-    bottom: 20,
-    backgroundColor: '#e50914',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 5,
+    top: 20,
+    right: 20,
+    zIndex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 0,
   },
   closeButtonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    lineHeight: 24,
+    textAlign: 'center',
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+    padding: 20,
+    paddingBottom: Platform.OS === 'ios' ? 40 : 20,
+  },
+  actionButton: {
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 25,
+    minWidth: 120,
+    alignItems: 'center',
+  },
+  rejectButton: {
+    backgroundColor: '#e50914',
+  },
+  addButton: {
+    backgroundColor: '#00c853',
+  },
+  actionButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
   },
+  noMoreContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   noMoreText: {
-    fontSize: 24,
+    fontSize: Math.min(SCREEN_WIDTH * 0.06, 24),
     color: '#fff',
     textAlign: 'center',
-    marginBottom: 20,
   },
 });
 
